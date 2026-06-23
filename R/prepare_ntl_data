@@ -1,0 +1,46 @@
+# This function takes an input CSV file 
+# and returns a cleaned sf data ready for analysis.ect
+
+# @param: input_csv | Character string- file path of the output from function 3
+
+prepare_ntl_data <- function(input_csv) {
+    # Load Data
+    data <- read_csv(input_csv)
+
+    # Rename monthly NTL columns
+    rename_dict <- c(
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-01-01" = "NTL_Jan_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-02-01" = "NTL_Feb_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-03-01" = "NTL_Mar_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-04-01" = "NTL_Apr_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-05-01" = "NTL_May_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-06-01" = "NTL_Jun_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-07-01" = "NTL_Jul_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-08-01" = "NTL_Aug_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-09-01" = "NTL_Sep_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-10-01" = "NTL_Oct_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-11-01" = "NTL_Nov_Mean",
+        "DNB_BRDF_Corrected_NTL_sum_mean_2025-12-01" = "NTL_Dec_Mean"
+    )
+
+    names(data) <- ifelse(
+        names(data) %in% names(rename_dict),
+        rename_dict[names(data)],
+        names(data)
+    )
+
+    # Filter Germany only
+    if ("shapeGroup" %in% names(data)) {
+        data <- data %>%
+            filter(shapeGroup == "DEU")
+    }
+
+    # Convert GeoJSON geometry column to sf
+    germany_sf <- st_as_sf(
+        data,
+        wkt = ".geo",
+        crs = 4326
+    )
+
+    return(germany_sf)      
+}
