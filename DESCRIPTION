@@ -1,6 +1,6 @@
 Package: ginieq
 Title: Estimate Gini Index for Administrative Areas Using Nightlight Data
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     person(
         "Christian", "Oluoma",
@@ -16,6 +16,8 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
+Depends:
+    R (>= 4.1.0)
 Imports: 
     dplyr,
     geojsonsf,
