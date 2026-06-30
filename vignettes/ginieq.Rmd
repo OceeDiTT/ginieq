@@ -1,0 +1,162 @@
+---
+title: "Getting Started with ginieq"
+author: "Christian Oluoma"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with ginieq}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+The **ginieq** package provides tools for preparing nighttime light (NTL)
+data, computing spatial Gini coefficients, and exploring the resulting
+data through an S3 class with custom print, summary, and plotting methods.
+
+This vignette demonstrates the complete workflow using the example dataset
+included with the package.
+
+```{r}
+library(ginieq)
+```
+
+# Load and Prepare Data
+
+The package ships with an example dataset located in `inst/extdata`.
+
+```{r}
+germany_sf <- prepare_ntl_data()
+
+germany_sf
+```
+
+The returned object is an `sf` object ready for analysis.
+
+```{r}
+class(germany_sf)
+```
+
+# Compute the Gini Index
+The next step computes the Gini coefficient for each administrative region.
+
+Results are exported to a temporary directory created during the R session.
+
+```{r}
+output_dir <- tempdir()
+
+germany_gini <- compute_gini_index(
+  cleaned_sf = germany_sf,
+  output_dir = output_dir,
+  file_name = "germany_gini"
+)
+```
+
+The returned object belongs to the package's S3 class.
+
+```{r}
+class(germany_gini)
+```
+
+# Print Method
+
+Printing the object produces a concise overview of the dataset.
+
+```{r}
+print(germany_gini)
+```
+
+Because `print()` is the default method for console output, simply typing
+the object also works.
+
+```{r}
+germany_gini
+```
+
+# Summary Method
+
+A more detailed statistical summary is available using `summary()`.
+
+```{r}
+gini_summary <- summary(germany_gini)
+
+gini_summary
+```
+
+The summary object itself has a custom print method.
+
+```{r}
+print(gini_summary)
+```
+
+# Plot Method
+
+The package implements a custom plotting method for visualising different
+variables.
+
+## Annual Mean Nighttime Lights
+
+```{r, fig.width=7, fig.height=5}
+plot(germany_gini)
+```
+
+## Population
+
+```{r, fig.width=7, fig.height=5}
+plot(germany_gini, var = "pop")
+```
+
+## Gini Coefficient
+
+```{r, fig.width=7, fig.height=5}
+plot(germany_gini, var = "Gini_Coefficient")
+```
+
+## Gini Category
+
+```{r, fig.width=7, fig.height=5}
+plot(germany_gini, var = "Gini_Category")
+```
+
+## Monthly Nighttime Lights
+
+Individual monthly variables can also be displayed.
+
+```{r, fig.width=7, fig.height=5}
+plot(germany_gini, var = "NTL_Jan_Mean")
+```
+
+# Exported Files
+
+The computation exported two files into the temporary directory.
+
+```{r}
+list.files(
+  output_dir,
+  pattern = "germany_gini",
+  full.names = FALSE
+)
+```
+
+# Workflow Summary
+
+The typical workflow with **ginieq** consists of three steps:
+
+1. Load and prepare NTL data with `prepare_ntl_data()`.
+2. Compute spatial Gini coefficients using `compute_gini_index()`.
+3. Explore the resulting object using its S3 methods:
+
+- `print()`
+- `summary()`
+- `plot()`
+
+The package preserves the `sf` geometry throughout the workflow, allowing
+users to continue spatial analyses using the broader **sf** ecosystem.

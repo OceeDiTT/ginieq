@@ -1,11 +1,30 @@
 Package: ginieq
-Title: What the Package Does (One Line, Title Case)
+Title: Estimate Gini Index for Administrative Areas Using Nightlight Data
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person(
+        "Christian", "Oluoma",
+        email = "c.oluoma@uni-muenster.de",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0009-0003-8382-3263")
+    )
+Description: 'ginieq' is a data analysis package that estimates the gini index of a country's administrative units
+    using remotely sensed nighttime light and population data in CSV format. 'ginieq' will load and wrangle the data, 
+    calculate the per-capital nightlight emission values, perform log transformation and 
+    calculate the gini index for each admisnistrative unit.
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
+Imports: 
+    dplyr,
+    geojsonsf,
+    ggplot2,
+    rlang,
+    sf
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
