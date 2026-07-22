@@ -16,147 +16,138 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Introduction
+# Introduction + Motivation
 
-The **ginieq** package provides tools for preparing nighttime light (NTL)
-data, computing spatial Gini coefficients, and exploring the resulting
-data through an S3 class with custom print, summary, and plotting methods.
+Current data on Nigeria's economic inequality are available only on a limited national scale. The lack of detailed economic inequality data at Nigeria's local administrative levels obscures areas of high inequality within states and local government areas (LGAs). This limitation significantly hampers stakeholders' efforts to eradicate poverty and reduce inequality, which aligns with the UN's Sustainable Development Goal 10. The Gini Index is a statistical measure that evaluates how wealth or income is distributed within a population and has been proven to be an efficient proxy for economic inequality. It ranges from 0% to 100%. Perfect equality (0%) means that everyone in the population has the exact same income or wealth, while perfect inequality (100%) indicates that a single person or entity possesses all the income or wealth, while everyone else receives nothing. Though the Gini index is presented on a country scale, it is possible that smaller areas within the country still exhibit high economic inequality. These places need to be identified for targeted intervention.
 
-This vignette demonstrates the complete workflow using the example dataset
-included with the package.
+
+**ginieq** is a data analysis package that addresses the need to generate economic inequality metrics (Gini index) at local administrative levels using remotely sensed nighttime light (NTL) data. The package provides tools for preparing nighttime light (NTL) data, computing the Gini index, and exploring the results through an S3 class with custom print, summary, and plot methods. The goal of **ginieq** is to provide this Gini index for local administrative units (e.g., LGAs in Nigeria). The package also exports the final data as a CSV and GeoPackage.
+
+
+**ginieq** package will be used by administrative authorities in Nigeria. By revealing the patterns of economic inequality, the package will provide a foundation for more targeted and evidence-based development policies.
+
+
+This vignette demonstrates the complete workflow using the example dataset included with the package.
+
+
+# Data Description + Exploration
+
+The example data is a CSV file that contains the remotely sensed datasets aggregated for each local administrative area. The datasets used are the SNPP-VIIRS nighttime light data and the global population surfaces data, which are raster datasets that illustrate for each cell the spatial distribution of nighttime light and the residential population, respectively. The SNPP-VIIRS nighttime light data comes from the Day/Night Band (DNB) aboard the Suomi NPP satellite and is operated jointly by NASA and NOAA. The spatial and temporal resolutions are 15 arc-seconds (500 m) and daily. The GHS-POP dataset is maintained by the European Commission Joint Research Centre (JRC) under the Copernicus program. It has a spatial resolution of 100 m. Both datasets are available on Google Earth Engine.
+
+
+The datasets were filtered based on geometry, and zonal statistics were performed for each administrative unit using reducers for spatial and temporal statistics. Both datasets were integrated, and the output was saved as a CSV file, which is used as the example data in this package. If interested, the script to get the CSV from GEE can be found here.
+
+
+To explore the CSV data content, load the package and run the following commands:
 
 ```{r}
 library(ginieq)
 ```
 
-# Load and Prepare Data
+## Load and Prepare Data
 
-The package ships with an example dataset located in `inst/extdata`.
-
-```{r}
-germany_sf <- prepare_ntl_data()
-
-germany_sf
-```
-
-The returned object is an `sf` object ready for analysis.
+The package ships with an example dataset located in `inst/extdata`. The **prepare_ntl_data()** function takes the example dataset, cleans it, and returns an `sf` object ready for analysis.
 
 ```{r}
-class(germany_sf)
+nigeria_sf <- prepare_ntl_data()
+
+nigeria_sf
 ```
 
-# Compute the Gini Index
-The next step computes the Gini coefficient for each administrative region.
+Confirm the class of the output data.
+```{r}
+class(nigeria_sf)
+```
 
-Results are exported to a temporary directory created during the R session.
+
+# Analysis + Results
+
+The per capita emission values of nighttime lights at each local administrative area were calculated by dividing the nighttime lights (NTL) emissions by the population residing in the administrative area. Finally, an inequality metric, the Gini index, was calculated for each administrative area.
+
+## Compute the Gini Index
+This **compute_gini_index()** function computes the Gini coefficient for each local administrative area. The **compute_gini_index()** function uses an already established formula (Gini Formula). Results are exported to a temporary directory.
 
 ```{r}
 output_dir <- tempdir()
 
-germany_gini <- compute_gini_index(
-  cleaned_sf = germany_sf,
+nigeria_gini <- compute_gini_index(
+  cleaned_sf = nigeria_sf,
   output_dir = output_dir,
-  file_name = "germany_gini"
+  file_name = "nigeria_gini"
 )
 ```
 
 The returned object belongs to the package's S3 class.
 
 ```{r}
-class(germany_gini)
+class(nigeria_gini)
 ```
 
-# Print Method
-
-Printing the object produces a concise overview of the dataset.
-
+You can also print the object to get a concise overview of the dataset.
 ```{r}
-print(germany_gini)
+print(nigeria_gini)
 ```
 
-Because `print()` is the default method for console output, simply typing
-the object also works.
+## Result 1: Monthly Nightime Light Distribution on Map
+Individual monthly variables can also be displayed. For January:
 
-```{r}
-germany_gini
+```{r, fig.width=7, fig.height=5}
+plot(nigeria_gini, var = "NTL_Jan_Mean")
 ```
 
-# Summary Method
+For Decemeber:
+```{r, fig.width=7, fig.height=5}
+plot(nigeria_gini, var = "NTL_Dec_Mean")
+```
+
+## Result 2: Population Distribution on Map
+```{r, fig.width=7, fig.height=5}
+plot(nigeria_gini, var = "pop")
+```
+
+## Result 3: Distribution of Gini index in Nigeria
+```{r, fig.width=7, fig.height=5}
+plot(nigeria_gini, var = "Gini_Coefficient")
+```
+
+## Result 4: Classification of Gini Categories across Nigeria
+
+plot a pie chart with percentage of low, high etc gini category and also a bar chart with the counts.
+
+## Result 5: Economic Inequality Distribution (Gini Categories) in Nigeria
+```{r, fig.width=7, fig.height=5}
+plot(nigeria_gini, var = "Gini_Category")
+```
+
+## Summary Method
 
 A more detailed statistical summary is available using `summary()`.
 
 ```{r}
-gini_summary <- summary(germany_gini)
+gini_summary <- summary(nigeria_gini)
 
 gini_summary
 ```
 
-The summary object itself has a custom print method.
-
-```{r}
-print(gini_summary)
-```
-
-# Plot Method
-
-The package implements a custom plotting method for visualising different
-variables.
-
-## Annual Mean Nighttime Lights
+### Annual Mean Nighttime Lights
 
 ```{r, fig.width=7, fig.height=5}
-plot(germany_gini)
+plot(nigeria_gini)
 ```
 
-## Population
-
-```{r, fig.width=7, fig.height=5}
-plot(germany_gini, var = "pop")
-```
-
-## Gini Coefficient
-
-```{r, fig.width=7, fig.height=5}
-plot(germany_gini, var = "Gini_Coefficient")
-```
-
-## Gini Category
-
-```{r, fig.width=7, fig.height=5}
-plot(germany_gini, var = "Gini_Category")
-```
-
-## Monthly Nighttime Lights
-
-Individual monthly variables can also be displayed.
-
-```{r, fig.width=7, fig.height=5}
-plot(germany_gini, var = "NTL_Jan_Mean")
-```
-
-# Exported Files
+## Exported Files
 
 The computation exported two files into the temporary directory.
 
 ```{r}
 list.files(
   output_dir,
-  pattern = "germany_gini",
+  pattern = "nigeria_gini",
   full.names = FALSE
 )
 ```
 
-# Workflow Summary
-
-The typical workflow with **ginieq** consists of three steps:
-
-1. Load and prepare NTL data with `prepare_ntl_data()`.
-2. Compute spatial Gini coefficients using `compute_gini_index()`.
-3. Explore the resulting object using its S3 methods:
-
-- `print()`
-- `summary()`
-- `plot()`
-
-The package preserves the `sf` geometry throughout the workflow, allowing
-users to continue spatial analyses using the broader **sf** ecosystem.
+# LLM usage report
+LLM tool used: Claude Opus 5.5
+Purpose: For partial coding and full-time debugging
+Percentage of code generated by LLM: 35%

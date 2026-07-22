@@ -12,7 +12,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' germany_gini <- compute_gini_index(clean_ntl_sf, tempdir())
+#' nigeria_gini <- compute_gini_index(clean_ntl_sf, tempdir())
 #' }
 
 compute_gini_index <- function(cleaned_sf, output_dir, file_name = "gini_index") {
@@ -34,19 +34,15 @@ compute_gini_index <- function(cleaned_sf, output_dir, file_name = "gini_index")
         "NTL_Oct_Mean", "NTL_Nov_Mean", "NTL_Dec_Mean"
     )
 
-    # Work only on attribute table
+    # Drop geometry and work only on attribute table
     df <- sf::st_drop_geometry(cleaned_sf)
 
-    # Ensure numeric safety
+    # Ensure the required columns are numeric
     df[ntl_cols] <- lapply(df[ntl_cols], as.numeric)
     df$pop <- as.numeric(df$pop)
 
-    # Transform: log(1 + x) and per-capita scaling
-    df[ntl_cols] <- lapply(df[ntl_cols], log1p)
-
-    for (col in ntl_cols) {
-        df[[col]] <- df[[col]] / df$pop
-    }
+    # Divide the ntl values by the population (per-capita scaling)
+    for (col in ntl_cols) df[[col]] <- df[[col]] / df$pop
 
     # Vectorised Gini function
     gini <- function(x) {
@@ -60,7 +56,7 @@ compute_gini_index <- function(cleaned_sf, output_dir, file_name = "gini_index")
         (2 * sum(seq_len(n) * x)) / (n * sum(x)) - (n + 1) / n
     }
 
-    # Apply Gini row-wise
+    # Apply Gini row-wise (for each admin unit)
     df$Gini_Coefficient <- apply(df[ntl_cols], 1, gini) * 100
     df$Gini_Coefficient <- round(df$Gini_Coefficient, 1)
 
@@ -72,21 +68,22 @@ compute_gini_index <- function(cleaned_sf, output_dir, file_name = "gini_index")
         include.lowest = TRUE
     )
 
-    # Summary statistic
+    # Calculate mean Gini value for the country (Nigeria)
     message("Mean Gini Coefficient: ", round(mean(df$Gini_Coefficient, na.rm = TRUE), 2), "%")
 
-    # Export outputs
+    # Export outputs: to CSV
     utils::write.csv(
         df,
         file.path(output_dir, paste0(file_name, ".csv")),
         row.names = FALSE
     )
   
-    # Reattach geometry
+    # Reassign geometry and gini columns back to the data
     out_sf <- cleaned_sf
     out_sf$Gini_Coefficient <- df$Gini_Coefficient
     out_sf$Gini_Category <- df$Gini_Category
 
+    # Export outputs: to Geopackage
     sf::st_write(
         out_sf,
         dsn = file.path(output_dir, paste0(file_name, ".gpkg")),
@@ -95,6 +92,5 @@ compute_gini_index <- function(cleaned_sf, output_dir, file_name = "gini_index")
     )
 
     
-
     return(gini_data(out_sf))
 }
