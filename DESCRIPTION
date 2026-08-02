@@ -22,6 +22,7 @@ Imports:
     dplyr,
     geojsonsf,
     ggplot2,
+    patchwork,
     rlang,
     sf
 Suggests: 

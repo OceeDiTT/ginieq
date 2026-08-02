@@ -1,70 +1,51 @@
-#' Load and prepare nighttime light data
-#' 
-#' This function takes an input CSV file, wrangle it, 
-#' and returns a cleaned sf data ready for analysis
-
-#' @param csv_file A Character string- file path of the input csv file
+#' Load, clean, and spatialise aggregated NTL data
+#'
+#' Builds on `aggregate_ntl_data()`. It merges and yearly-aggregates the input
+#' files, filters by a country's three-letter code, optionally writes a cleaned
+#' CSV, and returns an `sf` object. Column detection/renaming is handled
+#' automatically inside `aggregate_ntl_data()`.
+#'
+#' @param csv_files A character vector of file paths (max 5). If `NULL`, a
+#'   default packaged file is used.
+#' @param country_code A three-letter ISO code (e.g. `"NGA"`) used to filter the
+#'   `shapeGroup` column. If `NULL`, no filtering is applied.
+#' @param output_file Optional path to write the cleaned CSV (without geometry).
+#' @param id_col Region identifier column passed to `aggregate_ntl_data()`.
+#' @param ... Additional arguments passed to `aggregate_ntl_data()`
+#'   (e.g. `labels`, `aggregate_fun`).
+#'
+#' @return An `sf` object of the cleaned, yearly-aggregated NTL data.
 #' @export
-#' 
+#'
 #' @examples
-#' nigeria_sf <- prepare_ntl_data()
+#' nigeria_sf <- prepare_ntl_data(country_code = "NGA")
 #' nigeria_sf
+prepare_ntl_data <- function(csv_files = NULL,
+                             country_code = NULL,
+                             output_file = NULL,
+                             id_col = "shapeID",
+                             ...) {
 
-prepare_ntl_data <- function(csv_file = NULL) {
+  # Step 1: aggregate & merge the input files (yearly mean + sum per file)
+  data <- aggregate_ntl_data(csv_files = csv_files, id_col = id_col, ...)
 
-  if (is.null(csv_file)) {
-    csv_file <- system.file(
-      "extdata",
-      "Nigeria_ntl_pop.csv",
-      package = "ginieq"
-    )
-  }
-
-  data <- utils::read.csv(
-    csv_file,
-    check.names = FALSE,
-    stringsAsFactors = FALSE
-  )
-
-  # Rename the columns
-  rename_map <- c(
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-01-01" = "NTL_Jan_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-02-01" = "NTL_Feb_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-03-01" = "NTL_Mar_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-04-01" = "NTL_Apr_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-05-01" = "NTL_May_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-06-01" = "NTL_Jun_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-07-01" = "NTL_Jul_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-08-01" = "NTL_Aug_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-09-01" = "NTL_Sep_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-10-01" = "NTL_Oct_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-11-01" = "NTL_Nov_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_mean_2023-12-01" = "NTL_Dec_Mean",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-01-01" = "NTL_Jan_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-02-01" = "NTL_Feb_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-03-01" = "NTL_Mar_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-04-01" = "NTL_Apr_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-05-01" = "NTL_May_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-06-01" = "NTL_Jun_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-07-01" = "NTL_Jul_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-08-01" = "NTL_Aug_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-09-01" = "NTL_Sep_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-10-01" = "NTL_Oct_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-11-01" = "NTL_Nov_Sum",
-  "DNB_BRDF_Corrected_NTL_sum_sum_2023-12-01" = "NTL_Dec_Sum"
-  )
-
-  matched <- match(names(rename_map), names(data))
-
-  names(data)[matched[!is.na(matched)]] <- unname(rename_map[!is.na(matched)])
- 
-  # Filter the country Nigeria
-  if ("shapeGroup" %in% names(data)) {
+  # Step 2: filter by country code if provided
+  if (!is.null(country_code) && "shapeGroup" %in% names(data)) {
     data <- data |>
-      dplyr::filter(.data$shapeGroup == "NGA")
+      dplyr::filter(.data$shapeGroup == country_code)
   }
 
-  # Convert GeoJSON geometry column to sf geometry
+  # Step 3: export cleaned CSV (attributes only, no geometry) if requested
+  if (!is.null(output_file)) {
+    csv_out <- data[, !(names(data) %in% ".geo"), drop = FALSE]
+    utils::write.csv(csv_out, output_file, row.names = FALSE)
+  }
+
+  # Step 4: convert GeoJSON geometry column to an sf object
+  if (!(".geo" %in% names(data))) {
+    stop("No '.geo' geometry column found in the input data.")
+  }
+
   geom <- geojsonsf::geojson_sfc(data[[".geo"]])
 
   cleaned_sf <- sf::st_sf(
@@ -73,5 +54,5 @@ prepare_ntl_data <- function(csv_file = NULL) {
     crs = 4326
   )
 
-  return(cleaned_sf)
+  gini_data(cleaned_sf)
 }
