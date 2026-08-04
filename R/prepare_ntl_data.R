@@ -26,22 +26,22 @@ prepare_ntl_data <- function(csv_files = NULL,
                              id_col = "shapeID",
                              ...) {
 
-  # Step 1: aggregate & merge the input files (yearly mean + sum per file)
+  # aggregate & merge the input files (yearly mean + sum per file)
   data <- aggregate_ntl_data(csv_files = csv_files, id_col = id_col, ...)
 
-  # Step 2: filter by country code if provided
+  # filter by country code if provided
   if (!is.null(country_code) && "shapeGroup" %in% names(data)) {
     data <- data |>
       dplyr::filter(.data$shapeGroup == country_code)
   }
 
-  # Step 3: export cleaned CSV (attributes only, no geometry) if requested
+  # export cleaned CSV (attributes only, no geometry) if requested
   if (!is.null(output_file)) {
     csv_out <- data[, !(names(data) %in% ".geo"), drop = FALSE]
     utils::write.csv(csv_out, output_file, row.names = FALSE)
   }
 
-  # Step 4: convert GeoJSON geometry column to an sf object
+  # convert GeoJSON geometry column to an sf object
   if (!(".geo" %in% names(data))) {
     stop("No '.geo' geometry column found in the input data.")
   }

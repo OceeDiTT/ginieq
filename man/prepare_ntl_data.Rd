@@ -2,18 +2,40 @@
 % Please edit documentation in R/prepare_ntl_data.R
 \name{prepare_ntl_data}
 \alias{prepare_ntl_data}
-\title{Load and prepare nighttime light data}
+\title{Load, clean, and spatialise aggregated NTL data}
 \usage{
-prepare_ntl_data(csv_file = NULL)
+prepare_ntl_data(
+  csv_files = NULL,
+  country_code = NULL,
+  output_file = NULL,
+  id_col = "shapeID",
+  ...
+)
 }
 \arguments{
-\item{csv_file}{A Character string- file path of the input csv file}
+\item{csv_files}{A character vector of file paths (max 5). If \code{NULL}, a
+default packaged file is used.}
+
+\item{country_code}{A three-letter ISO code (e.g. \code{"NGA"}) used to filter the
+\code{shapeGroup} column. If \code{NULL}, no filtering is applied.}
+
+\item{output_file}{Optional path to write the cleaned CSV (without geometry).}
+
+\item{id_col}{Region identifier column passed to \code{aggregate_ntl_data()}.}
+
+\item{...}{Additional arguments passed to \code{aggregate_ntl_data()}
+(e.g. \code{labels}, \code{aggregate_fun}).}
+}
+\value{
+An \code{sf} object of the cleaned, yearly-aggregated NTL data.
 }
 \description{
-This function takes an input CSV file, wrangle it,
-and returns a cleaned sf data ready for analysis
+Builds on \code{aggregate_ntl_data()}. It merges and yearly-aggregates the input
+files, filters by a country's three-letter code, optionally writes a cleaned
+CSV, and returns an \code{sf} object. Column detection/renaming is handled
+automatically inside \code{aggregate_ntl_data()}.
 }
 \examples{
-germany_sf <- prepare_ntl_data()
-germany_sf
+nigeria_sf <- prepare_ntl_data(country_code = "NGA")
+nigeria_sf
 }

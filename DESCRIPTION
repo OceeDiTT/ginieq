@@ -1,5 +1,5 @@
 Package: ginieq
-Title: Estimate Gini Index for Administrative Areas Using Nightlight Data
+Title: Spatial and Temporal Inequality in Night-Time Light Emissions across Nigerian LGAs
 Version: 0.1.0
 Authors@R: 
     person(
@@ -10,8 +10,8 @@ Authors@R:
     )
 Description: 'ginieq' is a data analysis package that estimates the gini index of a country's administrative units
     using remotely sensed nighttime light and population data in CSV format. 'ginieq' will load and wrangle the data, 
-    calculate the per-capital nightlight emission values, perform log transformation and 
-    calculate the gini index for each admisnistrative unit.
+    calculate the per-capital nightlight emission values and 
+    calculate the spatial gini index per year and temporal gini index for each admisnistrative unit.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -24,6 +24,7 @@ Imports:
     ggplot2,
     patchwork,
     rlang,
+    scales,
     sf
 Suggests: 
     knitr,

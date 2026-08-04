@@ -87,6 +87,10 @@ print.gini_data <- function(x, n = 10, ...) {
   df <- sf::st_drop_geometry(x)
   if (".geo" %in% names(df)) df[[".geo"]] <- NULL
 
+  # IMPORTANT: drop custom classes so print() doesn't recurse
+  df <- as.data.frame(df)
+  class(df) <- "data.frame"
+
   cat("<gini_data>:", nrow(df), "regions |",
       "years:", paste(attr(x, "years"), collapse = ", "), "\n")
   cat("CRS:", sf::st_crs(x)$input, "\n\n")
@@ -334,19 +338,39 @@ plot.spatial_gini <- function(x, type = "trend", ...) {
 
   # ---- requirement 8: NTL vs Gini scatter -----------------------------------
   if (type == "scatter") {
+    
+    # Ensure chronological order for the connecting path
+    per_year <- per_year[order(per_year$YearNum), ]
+
+    # Correlation on the LOG scale (matches what the plot shows)
+    r <- stats::cor(log10(per_year$Mean_NTL), per_year$Gini_Coefficient,
+                    use = "complete.obs")
+    direction <- if (r > 0) "increases" else "decreases"
+    subtitle  <- paste0(
+      "Pearson r = ", round(r, 2),
+      "  |  Gini ", direction, " as NTL increases"
+    )
+    
     return(
       ggplot2::ggplot(
         per_year,
         ggplot2::aes(x = .data$Mean_NTL, y = .data$Gini_Coefficient)
       ) +
-        ggplot2::geom_point(size = 3, colour = "darkorange") +
-        ggplot2::geom_smooth(method = "lm", se = FALSE,
-                             linetype = "dashed", colour = "grey40") +
+        
+        # Chronological slope line
+        ggplot2::geom_line(
+          colour = "grey50", linewidth = 0.8
+        ) +
+        ggplot2::geom_point(size = 4, colour = "#2C7FB8") +
         ggplot2::geom_text(ggplot2::aes(label = .data$Year),
-                           vjust = -0.8, size = 3.2) +
+                           vjust = -1, size = 3.2) +
+        
+        # Log-transform the NTL axis
+        ggplot2::scale_x_log10(labels = scales::label_number()) +
         ggplot2::labs(
-          title = "Spatial Gini vs Average Per-Capita NTL",
-          x = "Average Yearly Mean NTL (per capita)",
+          title = "Gini vs NTL Trajectory Over Time",
+          subtitle = subtitle,
+          x = "Average Yearly Mean NTL (log scale)",
           y = "Spatial Gini Index (%)"
         ) +
         ggplot2::theme_minimal()
@@ -385,6 +409,11 @@ temporal_gini <- function(x) {
 #' @method print temporal_gini
 print.temporal_gini <- function(x, n = 10, ...) {
   df <- sf::st_drop_geometry(x)
+
+  # drop custom classes to avoid recursive dispatch
+  df <- as.data.frame(df)
+  class(df) <- "data.frame"
+
   cat("<temporal_gini>:", nrow(df), "regions\n")
   cat("Mean temporal Gini:",
       round(mean(df$Gini_Coefficient, na.rm = TRUE), 2), "%\n\n")

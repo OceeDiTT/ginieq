@@ -62,7 +62,7 @@ compute_spatial_gini <- function(cleaned_sf,
   # Average yearly mean NTL across regions (one value per year) - for scatter
   mean_ntl_by_year <- vapply(
     ntl_cols,
-    function(col) mean(df[[col]] / df[[pop_col]], na.rm = TRUE),
+    function(col) mean(df[[col]], na.rm = TRUE),
     numeric(1)
   )
 
