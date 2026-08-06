@@ -74,7 +74,7 @@ aggregate_ntl_data <- function(csv_files = NULL,
     stop("`labels` must have the same length as `csv_files`.")
   }
 
-  # Helper: aggregate one file's monthly means & sums into yearly values
+  # aggregate one file's monthly means & sums into yearly values
   aggregate_one <- function(file, label, keep_metadata) {
 
     data <- utils::read.csv(

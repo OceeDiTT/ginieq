@@ -2,7 +2,7 @@
 % Please edit documentation in R/gini_classes.R
 \name{print.spatial_gini}
 \alias{print.spatial_gini}
-\title{Print a spatial_gini object (requirement 6: neat table)}
+\title{Print a spatial_gini object (neat table)}
 \usage{
 \method{print}{spatial_gini}(x, ...)
 }
@@ -15,5 +15,5 @@
 \code{x} invisibly.
 }
 \description{
-Print a spatial_gini object (requirement 6: neat table)
+Print a spatial_gini object (neat table)
 }

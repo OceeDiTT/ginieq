@@ -2,7 +2,7 @@
 % Please edit documentation in R/gini_classes.R
 \name{print.gini_data}
 \alias{print.gini_data}
-\title{Print a gini_data object (requirement 2: table without geometry/.geo)}
+\title{Print a gini_data object (table without geometry/.geo)}
 \usage{
 \method{print}{gini_data}(x, n = 10, ...)
 }
@@ -17,5 +17,5 @@
 \code{x} invisibly.
 }
 \description{
-Print a gini_data object (requirement 2: table without geometry/.geo)
+Print a gini_data object (table without geometry/.geo)
 }

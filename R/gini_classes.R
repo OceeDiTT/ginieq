@@ -8,9 +8,9 @@
 # -----------------------------------------------------------------------------
 
 
-# =============================================================================
-# ntl_merged  (requirement 1: print merged data as a table, hide .geo)
-# =============================================================================
+# -----------------------------------------------------------------------------
+# ntl_merged  (print merged data as a table, hide .geo)
+# -----------------------------------------------------------------------------
 
 #' Create an ntl_merged object
 #' @param x A merged yearly-aggregated data.frame (may contain a `.geo` column).
@@ -42,9 +42,9 @@ print.ntl_merged <- function(x, n = 10, ...) {
 }
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # gini_data  (cleaned sf with yearly NTL + population)
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 #' Create a gini_data object
 #'
@@ -76,7 +76,7 @@ gini_data <- function(cleaned_sf, pop_col = "pop") {
   cleaned_sf
 }
 
-#' Print a gini_data object (requirement 2: table without geometry/.geo)
+#' Print a gini_data object (table without geometry/.geo)
 #' @param x A `gini_data` object.
 #' @param n Rows to display.
 #' @param ... Unused.
@@ -198,7 +198,7 @@ plot.gini_data <- function(x, var = "ntl_yearly", ...) {
   years    <- attr(x, "years")
   pop_col  <- attr(x, "pop_col")
 
-  # ---- requirement 3: yearly log NTL maps, one frame, shared palette --------
+  # yearly log NTL maps, one frame, shared palette
   if (var == "ntl_yearly") {
     long_sf <- .build_long_ntl(x, ntl_cols, years, transform = log1p)
 
@@ -209,14 +209,14 @@ plot.gini_data <- function(x, var = "ntl_yearly", ...) {
         ggplot2::facet_wrap(~ .data$year) +
         ggplot2::scale_fill_viridis_c(option = "inferno") +
         ggplot2::labs(
-          title = "Log Mean Nighttime Lights by Year",
-          fill  = "log(NTL)"
+          title = "Mean Nighttime Lights by Year (log)",
+          fill  = "NTL(log)"
         ) +
         ggplot2::theme_minimal()
     )
   }
 
-  # ---- requirement 4: log population map ------------------------------------
+  # log population map
   if (var == "pop") {
     plot_sf <- x
     class(plot_sf) <- setdiff(class(plot_sf), "gini_data")
@@ -227,13 +227,13 @@ plot.gini_data <- function(x, var = "ntl_yearly", ...) {
         ggplot2::geom_sf(ggplot2::aes(fill = .data$.plot),
                          colour = "grey40", linewidth = 0.1, ...) +
         ggplot2::scale_fill_viridis_c() +
-        ggplot2::labs(title = "Log Population Distribution",
-                      fill = "log(pop)") +
+        ggplot2::labs(title = "Population Distribution (log)",
+                      fill = "Pop(log)") +
         ggplot2::theme_minimal()
     )
   }
 
-  # ---- requirement 5: diverging change maps, colorblind-safe ----------------
+  # diverging change maps, colorblind-safe
   if (var == "ntl_change") {
     change_sf <- .build_change_long(x, ntl_cols, years)
 
@@ -248,9 +248,9 @@ plot.gini_data <- function(x, var = "ntl_yearly", ...) {
           midpoint = 0, na.value = "grey90"
         ) +
         ggplot2::labs(
-          title = "Change in Mean NTL Relative to Baseline Year",
-          subtitle = "log2 ratio; positive = increase since baseline",
-          fill = "log2 change"
+          title = "Change (log) in Mean NTL Relative to Baseline Year",
+          subtitle = "Positive = Increase since baseline",
+          fill = "Change (log)"
         ) +
         ggplot2::theme_minimal()
     )
@@ -260,9 +260,9 @@ plot.gini_data <- function(x, var = "ntl_yearly", ...) {
 }
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # spatial_gini  (per-year Gini table)
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 #' Create a spatial_gini object
 #' @param x A data.frame from [compute_spatial_gini()].
@@ -274,7 +274,7 @@ spatial_gini <- function(x) {
   x
 }
 
-#' Print a spatial_gini object (requirement 6: neat table)
+#' Print a spatial_gini object (neat table)
 #' @param x A `spatial_gini` object.
 #' @param ... Unused.
 #' @return `x` invisibly.
@@ -291,8 +291,8 @@ print.spatial_gini <- function(x, ...) {
 #' Plot a spatial_gini object
 #'
 #' @param x A `spatial_gini` object.
-#' @param type `"trend"` (Gini over time with mean line, requirement 6) or
-#'   `"scatter"` (mean NTL vs Gini, requirement 8).
+#' @param type `"trend"` (Gini over time with mean line) or
+#'   `"scatter"` (mean NTL vs Gini).
 #' @param ... Unused.
 #' @return A ggplot object.
 #' @export
@@ -304,7 +304,7 @@ plot.spatial_gini <- function(x, type = "trend", ...) {
   mean_row <- df[df$Year == "All_Years_Mean", , drop = FALSE]
   per_year$YearNum <- as.integer(sub("^Y", "", per_year$Year))
 
-  # ---- requirement 6: trend line with mean as dotted line -------------------
+  # trend line with mean as dotted line
   if (type == "trend") {
     p <- ggplot2::ggplot(
       per_year,
@@ -336,13 +336,13 @@ plot.spatial_gini <- function(x, type = "trend", ...) {
     return(p)
   }
 
-  # ---- requirement 8: NTL vs Gini scatter -----------------------------------
+  # NTL vs Gini scatter 
   if (type == "scatter") {
     
     # Ensure chronological order for the connecting path
     per_year <- per_year[order(per_year$YearNum), ]
 
-    # Correlation on the LOG scale (matches what the plot shows)
+    # Correlation on the LOG scale
     r <- stats::cor(log10(per_year$Mean_NTL), per_year$Gini_Coefficient,
                     use = "complete.obs")
     direction <- if (r > 0) "increases" else "decreases"
@@ -381,9 +381,9 @@ plot.spatial_gini <- function(x, type = "trend", ...) {
 }
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # temporal_gini  (per-region Gini sf)
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 #' Create a temporal_gini object
 #' @param x An `sf` object from [compute_temporal_gini()].
@@ -425,15 +425,15 @@ print.temporal_gini <- function(x, n = 10, ...) {
 #' Plot a temporal_gini object
 #'
 #' @param x A `temporal_gini` object.
-#' @param type `"category"` (pie + bar in one frame, requirement 7) or
-#'   `"map"` (map of temporal Gini per region, requirement 7).
+#' @param type `"category"` (pie + bar in one frame) or
+#'   `"map"` (map of temporal Gini per region).
 #' @param ... Passed to [ggplot2::geom_sf()] for `type = "map"`.
 #' @return A ggplot / patchwork object.
 #' @export
 #' @method plot temporal_gini
 plot.temporal_gini <- function(x, type = "category", ...) {
 
-  # ---- requirement 7a: pie + bar in one figure frame ------------------------
+  # pie + bar in one figure frame
   if (type == "category") {
     cat_df <- sf::st_drop_geometry(x)
     counts <- as.data.frame(
@@ -481,7 +481,7 @@ plot.temporal_gini <- function(x, type = "category", ...) {
     )
   }
 
-  # ---- requirement 7b: map of temporal Gini per region ----------------------
+  # map of temporal Gini per region
   if (type == "map") {
     plot_sf <- x
     class(plot_sf) <- setdiff(class(plot_sf), "temporal_gini")

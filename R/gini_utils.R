@@ -1,7 +1,7 @@
-#' Gini coefficient (internal)
+#' Calculate Gini index (internal)
 #'
 #' @param x Numeric vector.
-#' @return Gini coefficient in \[0, 1], or `NA` if empty.
+#' @return Gini index in \[0, 1], or `NA` if empty.
 #' @keywords internal
 .gini <- function(x) {
   x <- x[!is.na(x)]
@@ -14,9 +14,9 @@
   (2 * sum(seq_len(n) * x)) / (n * sum(x)) - (n + 1) / n
 }
 
-#' Categorise a Gini coefficient (internal)
+#' Categorise a Gini index (internal)
 #'
-#' @param g Numeric vector of Gini coefficients on the 0-100 scale.
+#' @param g Numeric vector of Gini index on the 0-100 scale.
 #' @return An ordered factor of inequality categories.
 #' @keywords internal
 .gini_category <- function(g) {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/gini_utils.R
 \name{.gini}
 \alias{.gini}
-\title{Gini coefficient (internal)}
+\title{Calculate Gini index (internal)}
 \usage{
 .gini(x)
 }
@@ -10,9 +10,9 @@
 \item{x}{Numeric vector.}
 }
 \value{
-Gini coefficient in [0, 1], or \code{NA} if empty.
+Gini index in [0, 1], or \code{NA} if empty.
 }
 \description{
-Gini coefficient (internal)
+Calculate Gini index (internal)
 }
 \keyword{internal}

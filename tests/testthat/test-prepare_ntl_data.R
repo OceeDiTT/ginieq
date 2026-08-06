@@ -1,39 +1,30 @@
-test_that("prepare_ntl_data works", {
-  expect_no_error(prepare_ntl_data())
-})
+test_that("prepare_ntl_data returns a valid spatial NTL object", {
 
-test_that("prepare_ntl_data returns an sf object", {
-  x <- prepare_ntl_data()
+  result <- prepare_ntl_data(country_code = "NGA")
 
-  expect_s3_class(x, "sf")
-  expect_true(inherits(x, "data.frame"))
-})
+  # Correct classes
+  expect_s3_class(result, "gini_data")
+  expect_s3_class(result, "sf")
 
-test_that("prepare_ntl_data creates expected columns", {
+  # Has geometry and a valid CRS
+  expect_true("geometry" %in% attr(result, "sf_column") ||
+                inherits(sf::st_geometry(result), "sfc"))
+  expect_equal(sf::st_crs(result)$epsg, 4326)
 
-  x <- prepare_ntl_data()
+  # Region identifier is retained
+  expect_true("shapeID" %in% names(result))
 
-  expected_cols <- c(
-    "NTL_Jan_Mean",
-    "NTL_Feb_Mean",
-    "NTL_Mar_Mean",
-    "NTL_Apr_Mean",
-    "NTL_May_Mean",
-    "NTL_Jun_Mean",
-    "NTL_Jul_Mean",
-    "NTL_Aug_Mean",
-    "NTL_Sep_Mean",
-    "NTL_Oct_Mean",
-    "NTL_Nov_Mean",
-    "NTL_Dec_Mean"
-  )
+  # Yearly aggregated columns are present
+  expect_true(any(grepl("^NTL_Yearly_Mean_Y\\d{4}$", names(result))))
 
-  expect_true(all(expected_cols %in% names(x)))
-})
+  # Raw geometry column has been consumed/removed
+  expect_false(".geo" %in% names(result))
 
-test_that("prepare_ntl_data returns valid geometry", {
+  # Country filter worked (all rows belong to NGA)
+  if ("shapeGroup" %in% names(result)) {
+    expect_true(all(result$shapeGroup == "NGA"))
+  }
 
-  x <- prepare_ntl_data()
-
-  expect_s3_class(sf::st_geometry(x), "sfc")
+  # There is data
+  expect_gt(nrow(result), 0)
 })

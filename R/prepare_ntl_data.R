@@ -1,7 +1,7 @@
 #' Load, clean, and spatialise aggregated NTL data
 #'
-#' Builds on `aggregate_ntl_data()`. It merges and yearly-aggregates the input
-#' files, filters by a country's three-letter code, optionally writes a cleaned
+#' Builds on `aggregate_ntl_data()`. It takes the merged input
+#' file, filters by a country's three-letter code, optionally writes a cleaned
 #' CSV, and returns an `sf` object. Column detection/renaming is handled
 #' automatically inside `aggregate_ntl_data()`.
 #'

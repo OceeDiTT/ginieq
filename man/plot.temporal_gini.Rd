@@ -9,8 +9,8 @@
 \arguments{
 \item{x}{A \code{temporal_gini} object.}
 
-\item{type}{\code{"category"} (pie + bar in one frame, requirement 7) or
-\code{"map"} (map of temporal Gini per region, requirement 7).}
+\item{type}{\code{"category"} (pie + bar in one frame) or
+\code{"map"} (map of temporal Gini per region).}
 
 \item{...}{Passed to \code{\link[ggplot2:geom_sf]{ggplot2::geom_sf()}} for \code{type = "map"}.}
 }

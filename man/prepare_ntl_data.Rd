@@ -30,8 +30,8 @@ default packaged file is used.}
 An \code{sf} object of the cleaned, yearly-aggregated NTL data.
 }
 \description{
-Builds on \code{aggregate_ntl_data()}. It merges and yearly-aggregates the input
-files, filters by a country's three-letter code, optionally writes a cleaned
+Builds on \code{aggregate_ntl_data()}. It takes the merged input
+file, filters by a country's three-letter code, optionally writes a cleaned
 CSV, and returns an \code{sf} object. Column detection/renaming is handled
 automatically inside \code{aggregate_ntl_data()}.
 }

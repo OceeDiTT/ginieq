@@ -2,17 +2,17 @@
 % Please edit documentation in R/gini_utils.R
 \name{.gini_category}
 \alias{.gini_category}
-\title{Categorise a Gini coefficient (internal)}
+\title{Categorise a Gini index (internal)}
 \usage{
 .gini_category(g)
 }
 \arguments{
-\item{g}{Numeric vector of Gini coefficients on the 0-100 scale.}
+\item{g}{Numeric vector of Gini index on the 0-100 scale.}
 }
 \value{
 An ordered factor of inequality categories.
 }
 \description{
-Categorise a Gini coefficient (internal)
+Categorise a Gini index (internal)
 }
 \keyword{internal}

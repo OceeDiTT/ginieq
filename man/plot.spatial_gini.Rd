@@ -9,8 +9,8 @@
 \arguments{
 \item{x}{A \code{spatial_gini} object.}
 
-\item{type}{\code{"trend"} (Gini over time with mean line, requirement 6) or
-\code{"scatter"} (mean NTL vs Gini, requirement 8).}
+\item{type}{\code{"trend"} (Gini over time with mean line) or
+\code{"scatter"} (mean NTL vs Gini).}
 
 \item{...}{Unused.}
 }
