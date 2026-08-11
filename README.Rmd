@@ -1,24 +1,3 @@
----
-title: "Spatial and Temporal Inequality in Night-Time Light Emissions across Nigerian LGAs"
-author: "Christian Oluoma"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Spatial and Temporal Inequality in Night-Time Light Emissions across Nigerian LGAs}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.width = 8,
-  fig.height = 5,
-  dpi = 120
-)
-```
-
 # 1. Introduction + Motivation
 
 Nighttime light (NTL) satellite imagery has become an important proxy for measuring human activity, economic development, electrification, and urbanization. In countries where subnational economic statistics are sparse or delayed, remotely sensed NTL provides a consistent way to compare places through time, thereby supporting the United Nations' SDG 10. Beyond measuring absolute light intensity, understanding how light is distributed across space and how it changes over time provides valuable insights into regional inequalities and development patterns.
