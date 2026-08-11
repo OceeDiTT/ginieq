@@ -1,1 +1,151 @@
+---
+title: "Spatial and Temporal Inequality in Night-Time Light Emissions across Nigerian LGAs"
+author: "Christian Oluoma"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Spatial and Temporal Inequality in Night-Time Light Emissions across Nigerian LGAs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
 
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 5,
+  dpi = 120
+)
+```
+
+# 1. Introduction + Motivation
+
+Nighttime light (NTL) satellite imagery has become an important proxy for measuring human activity, economic development, electrification, and urbanization. In countries where subnational economic statistics are sparse or delayed, remotely sensed NTL provides a consistent way to compare places through time, thereby supporting the United Nations' SDG 10. Beyond measuring absolute light intensity, understanding how light is distributed across space and how it changes over time provides valuable insights into regional inequalities and development patterns.
+
+The `ginieq` data analysis package was developed to quantify spatial and temporal inequality in NTL emissions using the Gini index. The Gini index ranges from 0% to 100%. Perfect equality (0%) means that everyone in the population has the exact same income or wealth, while perfect inequality (100%) indicates that a single person or entity possesses all the income or wealth, while everyone else receives nothing. The package computes yearly spatial Gini indices, evaluates temporal variability for each administrative unit, and provides a suite of visualization tools for interpreting these patterns. This vignette demonstrates a typical workflow using Local Government Areas (LGAs) in Nigeria from 2017 to 2025.
+
+`ginieq` can be used by local administrative authorities in Nigeria. By revealing the spatial and temporal patterns of economic inequality across years, the package will provide a foundation for more targeted and evidence-based development policies. The workflow produces maps of annual NTL emission, population distribution, NTL emission change relative to 2017 (baseline), annual spatial Gini indices, LGA-level temporal Gini indices, and the relationship between NTL emission and Gini Index. Other key highlights include:
+
+- Output stored in structured S3 objects: `ntl_merge`, `gini_data`, `spatial_gini`, and `temporal_gini`
+- Custom S3 methods for `print()`, `summary()`, and `plot()`
+- Built-in utility function `gini_utils.R` and ggplot2 visualizations
+
+
+# 2. Data Description + Exploration
+
+The example data consists of five (5) CSV files for the years 2017, 2019, 2021, 2023, and 2025. These files contain the remotely sensed datasets aggregated for each local administrative area. The datasets used are the SNPP-VIIRS nighttime light data and the global population surfaces data, which are raster datasets that illustrate for each cell the spatial distribution of nighttime light and the residential population, respectively. The SNPP-VIIRS nighttime light data comes from the Day/Night Band (DNB) aboard the Suomi NPP satellite and is operated jointly by NASA and NOAA. The spatial and temporal resolutions are 15 arc-seconds (500 m) and daily. The GHS-POP dataset is maintained by the European Commission Joint Research Centre (JRC) under the Copernicus program. It has a spatial resolution of 100 m. Both datasets are available on Google Earth Engine (GEE).
+
+For each year, the datasets were filtered based on geometry, and zonal statistics were performed for each administrative unit using reducers for spatial and temporal statistics. Both datasets were integrated, and the output was saved as a CSV file, which is used as the example data in this package. If interested, the script to get the CSV from GEE can be found here (https://tinyurl.com/gee-datascript).
+
+To reproduce the analysis and explore the datasets, install and load the package using the following commands:
+
+## 2.1 Installation
+Using the local `.tar.gz` package 'ginieq_0.1.0.tar.gz', install with:
+```{r}
+install.packages("ginieq_0.1.0.tar.gz", repos = NULL, type = "source")
+```
+
+## 2.2 Load the package
+```{r}
+library(ginieq)
+```
+
+## 2.3 Aggregate NTL Data
+`ginieq` ships with example datasets located in `inst/extdata`. The `aggregate_ntl_data()` function takes up to 5 CSV files, where each row represents an LGA. For each file it aggregates the 12 monthly **mean** and 12 monthly **sum** NTL columns into a single yearly value each, then merges all files together on the shape ID. The merged, yearly-aggregated CSV is exported.
+```{r}
+merged_data <- aggregate_ntl_data()
+
+```
+
+## 2.4 Prepare NTL Data
+The `prepare_ntl_data()` function builds on `aggregate_ntl_data()`. It takes the merged CSV file, filters by a country's three-letter code, wrangles it, and optionally writes a **cleaned CSV**, and returns an `sf` object for analysis.
+```{r}
+nigeria_sf <- prepare_ntl_data(country_code = "NGA")  # NGA is the official three letter code for Nigeria.
+
+print(nigeria_sf)
+```
+
+
+# 3. Analysis + Results
+
+The primary objective is to quantify inequality (Gini Index) in NTL distribution across both space and time. The Gini index can be calculated using the following formula:
+$$G = \frac{\sum_{i=1}^{n} \sum_{j=1}^{n} |x_i - x_j|}{2n^2 \bar{x}}$$
+
+Where $x_i$ and $x_j$ are individual values, $n$ is the total number of observations, and $\bar{x}$ is the mean value.
+
+## 3.1 How Are Nighttime Light Emissions Distributed Across Nigeria LGAs?
+The analysis begins by visualizing the geographical distribution of NTL emissions for selected years.
+```{r}
+plot(nigeria_sf, var = "ntl_yearly")
+
+```
+
+## 3.2 How is Population Distributed Across Nigeria LGAs?
+Population distribution is also mapped to provide additional context. Large NTL values in major urban LGAs may reflect high population density, intense economic activity, or both.
+```{r}
+plot(nigeria_sf, var = "pop")
+
+```
+
+## 3.3 How Have Nighttime Light Emissions Changed Since the Baseline Year (2017)?
+To assess development dynamics, `ginieq` calculates the change in NTL emissions relative to the baseline year.
+```{r}
+plot(nigeria_sf, var = "ntl_change")
+
+```
+
+## 3.4 Has Spatial Inequality Increased or Decreased Over Time across Nigeria LGAs?
+`ginieq` computes the Spatial Gini Index independently for each year. The resulting annual values summarize how evenly nighttime light emissions are distributed across all LGAs.
+```{r}
+spatial_g <- compute_spatial_gini(nigeria_sf, tempdir())
+print(spatial_g)
+```
+
+The annual Gini values are displayed as a trend chart, enabling users to examine whether spatial inequality has increased, decreased, or remained stable throughout the study period.
+```{r}
+plot(spatial_g, type = "trend")
+
+```
+
+## 3.5 What Does the Temporal Gini Index Reveal About the Stability of NTL Emissions in Nigeria LGAs?
+`ginieq` estimates the Temporal Gini Index for every LGA using its annual NTL time series. This statistic measures the **temporal stability** of each area's nighttime light emissions between 2017 and 2025.
+```{r}
+temporal_g <- compute_temporal_gini(nigeria_sf, tempdir())
+
+```
+
+The temporal Gini results are presented as a choropleth map, allowing users to identify geographical clusters of stable and highly dynamic LGAs.
+```{r}
+plot(temporal_g, type= "map")
+
+```
+
+Additional pie and bar charts summarize the percentage and count of LGAs within predefined temporal Gini categories.
+```{r}
+plot(temporal_g, type= "category")
+
+```
+
+## 3.6 What is the Relationship Between Nighttime Light Emissions and Gini Index?
+Finally, `ginieq` explores the relationship between annual NTL emissions and spatial inequality through a scatter plot comparing NTL emission value against the spatial Gini index.
+```{r}
+plot(spatial_g, type = "scatter")
+
+```
+
+
+# 4. Discussion of Results
+
+The analyses demonstrate how NTL-derived Gini indices can be applied to characterize the spatial and temporal development pattern in data-scarce regions.
+
+NTL emission maps show emissions concentrated around major metropolitan areas, while rural LGAs remain less illuminated. Difference maps identify areas of growth, decline, and emerging development corridors. A spatial Gini value approaching zero indicates relatively uniform distribution, whereas larger values indicate a stronger concentration of emissions within a limited number of LGAs. Areas with low temporal Gini values exhibit relatively stable illumination over time, whereas higher values indicate substantial fluctuations that may reflect rapid development or economic disruption. The scatter plot reveals an inverse relationship between NTL emission and the Gini Index.
+
+Although this vignette focuses on Nigeria, `ginieq` offers a reproducible workflow that can be applied to any administrative geography with annual NTL observations.
+
+
+# 5. LLM Usage Report
+
+- LLM tool used: Claude Opus 4.8
+- Purpose: For partial coding and full-time debugging
+- Percentage of code generated by LLM: 30%
